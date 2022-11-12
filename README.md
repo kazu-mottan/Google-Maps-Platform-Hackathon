@@ -81,6 +81,6 @@ Quistroll supports follwing cities; Tokyo, New York, and Paris.
 
 2. After clicking on submit button, Quistroll judges your location is right or not based on your current location on GPS, Quistroll checks your location if it is right or not. 
 
-3. If your submission is right, Quistroll shows next checkpoint's quiz, so go to the next destination. If your submission is wrong, some hints pop up depending on the number of times you submit wrong location. By the way, hints is displayed up to three times. Based on some hints, find a correct checkpoint based on some hints.
+3. If your submission is right, Quistroll shows next checkpoint's quiz, so go to the next destination. If your submission is wrong, some hints pop up depending on the number of times you submit wrong location. By the way, hints are displayed up to three times. Based on some hints, find a correct checkpoint.
 
 > **Note**  
