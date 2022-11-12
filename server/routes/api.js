@@ -33,9 +33,6 @@ router.post('/init/:mapID', async (req, res) => {
     const goalPoint = {type:"goal", position: goal};
 
     const passedMidpoint = midpoint.slice(0,nowQuizCount);
-    for(let i = 0; i < nowQuizCount; ++i){
-        promises.push(place.getRefImg(midpoint[i].name));
-    }
     const results = await Promise.all(
         passedMidpoint.map(ele => place.getRefImg(ele.name))
     );
@@ -68,6 +65,7 @@ router.post('/next/:mapID', async (req, res) => {
         next.image = imageReview.refImage;
         next.hints = imageReview.hints;
         next.hints.nearSpot = near.nearSpot;
+        console.log(next);
 
         res.status(200).json({next:next});
     }

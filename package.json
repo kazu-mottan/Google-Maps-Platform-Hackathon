@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node server/app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "serve": "VUE_APP_GOOGLE_MAP_KEY=AIzaSyAWlP08GUK8VwKvX8uDUf4t9GqGuX6wyJY vue-cli-service serve",
+    "serve": "vue-cli-service serve",
     "build": "vue-cli-service build"
   },
   "dependencies": {
