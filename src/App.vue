@@ -1,9 +1,15 @@
 <template>
-  <router-view/>
+  <Suspense>
+    <template #default>
+      <router-view />
+    </template>
+    <template #fallback> loading... </template>
+    <template #error> Error </template>
+  </Suspense>
 </template>
 
 <style>
-body{
+body {
   margin: 0 !important;
 }
 

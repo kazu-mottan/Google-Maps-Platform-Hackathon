@@ -1,238 +1,232 @@
 <template>
-  <Suspense>
-    <el-page-header @back="onback()" class="quiz-header">
-      <template #content>
-        <span class="quiz-title">Where is this place?</span>
-      </template>
-    </el-page-header>
-    <el-card class="quiz-card">
-      <el-container v-if="nowQuiz >= 1 && nowQuiz <= quizTotal">
-        <el-aside width="100px">
-          <el-image
-            v-if="next.quizImage"
-            class="quiz-image"
-            style="width: 100%; height: 100%"
-            :src="next.quizImage"
-            :preview-src-list="[next.quizImage]"
-            fit="cover"
-          />
-          <div v-else>
-            <el-icon :size="30"><Picture /></el-icon>
-            <div>No Image</div>
-          </div>
-        </el-aside>
-        <el-main>
-          <el-progress
-            :percentage="100 * (nowQuiz / quizTotal)"
-            :format="(p) => `${nowQuiz} of ${quizTotal}`"
-          />
-          <span v-if="next.quiz">{{ next.quiz }}</span>
-          <span v-else>Please find the location from the image.</span>
-        </el-main>
-      </el-container>
-      <el-container v-else>
-        <el-aside width="100px">
-          <div>
-            <el-icon :size="30"><Picture /></el-icon>
-            <div>No Image</div>
-          </div>
-        </el-aside>
-        <el-main>
-          <span v-if="nowQuiz < 1">First, please go to the start.</span>
-          <span v-else>It' s almost there! Please go to the goal.</span>
-        </el-main>
-      </el-container>
-    </el-card>
-    <GoogleMap
-      class="map-area"
-      :api-key="apiKey"
-      language="en"
-      mapTypeId="roadmap"
-      :center="center"
-      :zoom="15"
-      :clickableIcons="false"
-      :fullscreenControl="false"
-      :keyboardShortcuts="false"
-      :mapTypeControl="false"
-      :streetViewControl="false"
-    >
-      <CustomControl position="TOP_CENTER">
-        <el-card class="icon-desc">
-          <span
-            ><img
-              src="../assets/start-flag.svg"
-              width="20"
-              height="20"
-              style="vertical-align: middle"
-            />
-            : Start</span
-          >
-          <span
-            ><img
-              src="../assets/goal-flag.svg"
-              width="20"
-              height="20"
-              style="vertical-align: middle"
-            />
-            : Goal</span
-          >
-        </el-card>
-      </CustomControl>
-      <CustomControl position="TOP_LEFT">
-        <button @click="aim()" class="custom-ctrl">
-          <el-icon class="aim-btn"><Aim /></el-icon>
-        </button>
-      </CustomControl>
-      <CustomControl position="BOTTOM_CENTER">
-        <el-button
-          type="primary"
-          class="hand-btn"
-          @click="showConfirm = true"
-          style="width: calc(100vw - 200px)"
-        >
-          Submit Your Place
-        </el-button>
-      </CustomControl>
-      <CustomControl position="TOP_RIGHT">
-        <el-button
-          circle
-          color="#FFDE03"
-          class="hand-btn"
-          style="width: 50px"
-          @click="showHint = true"
-        >
-          <el-icon :size="20" color="#4c4c4c"><Opportunity /></el-icon>
-        </el-button>
-      </CustomControl>
-      <div v-for="(spot, index) in spots" :key="index">
-        <Marker
-          v-if="spot.type === 'midpoint'"
-          :options="spotOption(spot)"
-          @click="spotInfo(spot)"
+  <el-page-header @back="onback()" class="quiz-header">
+    <template #content>
+      <span class="quiz-title">Where is this place?</span>
+    </template>
+  </el-page-header>
+  <el-card class="quiz-card">
+    <el-container v-if="nowQuiz >= 1 && nowQuiz <= quizTotal">
+      <el-aside width="100px">
+        <el-image
+          v-if="next.quizImage"
+          class="quiz-image"
+          style="width: 100%; height: 100%"
+          :src="next.quizImage"
+          :preview-src-list="[next.quizImage]"
+          fit="cover"
         />
-        <CustomMarker v-else :options="spotOption(spot)">
-          <img
-            v-if="spot.type === 'start'"
-            src="../assets/start-flag.svg"
-            width="40"
-            height="40"
-          />
-          <img v-else src="../assets/goal-flag.svg" width="40" height="40" />
-        </CustomMarker>
-      </div>
-      <Circle
-        :options="{
-          center: userPos,
-          clickable: false,
-          radius: gpsAccuracy,
-          fillColor: '#78a9ff',
-          fillOpacity: 0.3,
-          strokeOpacity: 0,
-        }"
-      />
-      <CustomMarker :options="{ position: userPos }">
-        <img src="../assets/marker.svg" width="20" height="20" />
-      </CustomMarker>
-      <span v-if="wrongCount >= 3">
-        <CustomMarker
-          v-for="(ns, index) in next.hints.nearSpot"
-          :key="index"
-          :options="{ position: ns }"
-        >
-          <img src="../assets/hint-flag.svg" width="40" height="40" />
-        </CustomMarker>
-      </span>
-      <Polyline :options="walkingPath" />
-    </GoogleMap>
-    <v-overlay v-model="showHint" class="hint-overlay">
-      <h3 class="hint-title hint-font">
-        1: Photos Uploaded by Google Map User
-      </h3>
-      <p class="hint-font hint-info">
-        <el-icon><Warning /></el-icon> This hint will appear after one submition
-        of the wrong place.
-      </p>
-      <el-carousel
-        v-if="wrongCount >= 1"
-        class="hint-image"
-        arrow="always"
-        :autoplay="false"
-        height="20vh"
-        style="width: 90vw"
-      >
-        <el-carousel-item
-          v-for="(image, index) in next.hints.images"
-          :key="index"
-        >
-          <el-image
-            :src="`data:image/jpeg;charset=utf-8;base64,${image}`"
-            fit="contain"
-            style="width: 100%; height: 100%"
-          />
-        </el-carousel-item>
-      </el-carousel>
-      <h3 class="hint-title hint-font">2:Google Map User Review</h3>
-      <p class="hint-font hint-info">
-        <el-icon><Warning /></el-icon> This hint will appear after two submition
-        of the wrong place.
-      </p>
-      <span v-if="wrongCount >= 2">
-        <div
-          v-for="(review, index) in next.hints.reviews"
-          :key="index"
-          style="width: 95%"
-        >
-          <el-divider v-if="index !== 0" />
-          <p class="hint-font">{{ review }}</p>
+        <div v-else>
+          <el-icon :size="30"><Picture /></el-icon>
+          <div>No Image</div>
         </div>
-      </span>
-      <h3 class="hint-title hint-font">3:Near Spot on Google Map</h3>
-      <p class="hint-font hint-info">
-        <el-icon><Warning /></el-icon> This hint will appear after three
-        submition of the wrong place.
-      </p>
-      <p class="hint-font" v-if="wrongCount >= 3">
-        Near spot is displayed as:
-        <img
-          src="../assets/hint-flag.svg"
-          width="20"
-          height="20"
-          style="vertical-align: middle"
+      </el-aside>
+      <el-main>
+        <el-progress
+          :percentage="100 * (nowQuiz / quizTotal)"
+          :format="(p) => `${nowQuiz} of ${quizTotal}`"
         />
-      </p>
-      <el-button size="large" class="hint-close" @click="showHint = false">
-        <el-icon style="margin-right: 5px"><Close /></el-icon> Close Hints
+        <span v-if="next.quiz">{{ next.quiz }}</span>
+        <span v-else>Please find the location from the image.</span>
+      </el-main>
+    </el-container>
+    <el-container v-else>
+      <el-aside width="100px">
+        <div>
+          <el-icon :size="30"><Picture /></el-icon>
+          <div>No Image</div>
+        </div>
+      </el-aside>
+      <el-main>
+        <span v-if="nowQuiz < 1">First, please go to the start.</span>
+        <span v-else>It' s almost there! Please go to the goal.</span>
+      </el-main>
+    </el-container>
+  </el-card>
+  <GoogleMap
+    class="map-area"
+    :api-key="apiKey"
+    language="en"
+    mapTypeId="roadmap"
+    :center="center"
+    :zoom="14"
+    :clickableIcons="false"
+    :fullscreenControl="false"
+    :keyboardShortcuts="false"
+    :mapTypeControl="false"
+    :streetViewControl="false"
+  >
+    <CustomControl position="TOP_CENTER">
+      <el-card class="icon-desc">
+        <span
+          ><img
+            src="../assets/start-flag.svg"
+            width="20"
+            height="20"
+            style="vertical-align: middle"
+          />
+          : Start</span
+        >
+        <span
+          ><img
+            src="../assets/goal-flag.svg"
+            width="20"
+            height="20"
+            style="vertical-align: middle"
+          />
+          : Goal</span
+        >
+      </el-card>
+    </CustomControl>
+    <CustomControl position="TOP_LEFT">
+      <button @click="aim()" class="custom-ctrl">
+        <el-icon class="aim-btn"><Aim /></el-icon>
+      </button>
+    </CustomControl>
+    <CustomControl position="BOTTOM_CENTER">
+      <el-button
+        type="primary"
+        class="hand-btn"
+        @click="showConfirm = true"
+        style="width: calc(100vw - 200px)"
+      >
+        Submit Your Place
       </el-button>
-    </v-overlay>
-    <v-overlay v-model="showSpotInfo" @click="showSpotInfo = false">
-      <p style="height: 30vh">
-        <el-image :src="showedSpot.image" fit="contain" class="spot-image" />
-      </p>
-      <h1 class="spot-desc">{{ showedSpot.name }}</h1>
-      <p class="spot-desc">{{ showedSpot.description }}</p>
-    </v-overlay>
-    <el-dialog v-model="showConfirm" title="Submit Your Place" width="80vw">
-      Have you arrived at the destination?
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="showConfirm = false">Cancel</el-button>
-          <el-button type="primary" @click="checkArrived()">
-            Arrived
-          </el-button>
-        </span>
-      </template>
-    </el-dialog>
-    <el-dialog
-      class="congrat"
-      v-model="showCongrat"
-      title="Congratulations!"
-      width="80vw"
+    </CustomControl>
+    <CustomControl position="TOP_RIGHT">
+      <el-button
+        circle
+        color="#FFDE03"
+        class="hand-btn"
+        style="width: 50px"
+        @click="showHint = true"
+      >
+        <el-icon :size="20" color="#4c4c4c"><Opportunity /></el-icon>
+      </el-button>
+    </CustomControl>
+    <div v-for="(spot, index) in spots" :key="index">
+      <Marker
+        v-if="spot.type === 'midpoint'"
+        :options="spotOption(spot)"
+        @click="spotInfo(spot)"
+      />
+      <CustomMarker v-else :options="spotOption(spot)">
+        <img
+          v-if="spot.type === 'start'"
+          src="../assets/start-flag.svg"
+          width="40"
+          height="40"
+        />
+        <img v-else src="../assets/goal-flag.svg" width="40" height="40" />
+      </CustomMarker>
+    </div>
+    <Circle
+      :options="{
+        center: userPos,
+        clickable: false,
+        radius: gpsAccuracy,
+        fillColor: '#78a9ff',
+        fillOpacity: 0.3,
+        strokeOpacity: 0,
+      }"
+    />
+    <CustomMarker :options="{ position: userPos }">
+      <img src="../assets/marker.svg" width="20" height="20" />
+    </CustomMarker>
+    <span v-if="wrongCount >= 3">
+      <CustomMarker
+        v-for="(ns, index) in next.hints.nearSpot"
+        :key="index"
+        :options="{ position: ns }"
+      >
+        <img src="../assets/hint-flag.svg" width="40" height="40" />
+      </CustomMarker>
+    </span>
+    <Polyline v-if="route.length > 0" :options="walkingPath" />
+  </GoogleMap>
+  <v-overlay v-model="showHint" class="hint-overlay">
+    <h3 class="hint-title hint-font">1: Photos Uploaded by Google Map User</h3>
+    <p class="hint-font hint-info">
+      <el-icon><Warning /></el-icon> This hint will appear after one submition
+      of the wrong place.
+    </p>
+    <el-carousel
+      v-if="wrongCount >= 1"
+      class="hint-image"
+      arrow="always"
+      :autoplay="false"
+      height="20vh"
+      style="width: 90vw"
     >
-      This is proof that you reached the goal. <br />
-      It can be used as a coupon for local area.
-      <vue-qrcode :value="qrBase64" :options="{ width: 200 }"></vue-qrcode>
-    </el-dialog>
-  </Suspense>
+      <el-carousel-item
+        v-for="(image, index) in next.hints.images"
+        :key="index"
+      >
+        <el-image
+          :src="`data:image/jpeg;charset=utf-8;base64,${image}`"
+          fit="contain"
+          style="width: 100%; height: 100%"
+        />
+      </el-carousel-item>
+    </el-carousel>
+    <h3 class="hint-title hint-font">2:Google Map User Review</h3>
+    <p class="hint-font hint-info">
+      <el-icon><Warning /></el-icon> This hint will appear after two submition
+      of the wrong place.
+    </p>
+    <span v-if="wrongCount >= 2">
+      <div
+        v-for="(review, index) in next.hints.reviews"
+        :key="index"
+        style="width: 95%"
+      >
+        <el-divider v-if="index !== 0" />
+        <p class="hint-font">{{ review }}</p>
+      </div>
+    </span>
+    <h3 class="hint-title hint-font">3:Near Spot on Google Map</h3>
+    <p class="hint-font hint-info">
+      <el-icon><Warning /></el-icon> This hint will appear after three submition
+      of the wrong place.
+    </p>
+    <p class="hint-font" v-if="wrongCount >= 3">
+      Near spot is displayed as:
+      <img
+        src="../assets/hint-flag.svg"
+        width="20"
+        height="20"
+        style="vertical-align: middle"
+      />
+    </p>
+    <el-button size="large" class="hint-close" @click="showHint = false">
+      <el-icon style="margin-right: 5px"><Close /></el-icon> Close Hints
+    </el-button>
+  </v-overlay>
+  <v-overlay v-model="showSpotInfo" @click="showSpotInfo = false">
+    <p style="height: 30vh">
+      <el-image :src="`data:image/jpeg;charset=utf-8;base64,${showedSpot.image}`" fit="contain" class="spot-image" />
+    </p>
+    <h1 class="spot-desc">{{ showedSpot.name }}</h1>
+    <p class="spot-desc">{{ showedSpot.description }}</p>
+  </v-overlay>
+  <el-dialog v-model="showConfirm" title="Submit Your Place" width="80vw">
+    Have you arrived at the destination?
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="showConfirm = false">Cancel</el-button>
+        <el-button type="primary" @click="checkArrived()"> Arrived </el-button>
+      </span>
+    </template>
+  </el-dialog>
+  <el-dialog
+    class="congrat"
+    v-model="showCongrat"
+    title="Congratulations!"
+    width="80vw"
+  >
+    This is proof that you reached the goal. <br />
+    It can be used as a coupon for local area.
+    <vue-qrcode :value="qrBase64" :options="{ width: 200 }"></vue-qrcode>
+  </el-dialog>
 </template>
 
 <script>
@@ -460,7 +454,6 @@ export default {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ now: nowQuiz.value }),
       }).then((response) => response.json());
-      console.log(data);
       next.value = data.next;
     };
 
@@ -472,33 +465,26 @@ export default {
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log(data);
           spots.value = data.spots;
           quizTotal.value = data.total;
-          // const start = data.spots.find((ele) => ele.type === "start");
-          // center.value = start.position;
+          const start = data.spots.find((ele) => ele.type === "start");
+          center.value = start.position;
         }),
       fetch(`/api/route/${mapID}`)
         .then((response) => response.json())
         .then((data) => {
-          console.log(data);
           routeRaw = data.route;
-        }).then(()=>{
+        })
+        .then(() => {
           for (let i = 0; i < nowQuiz - 1 && i < quizTotal - 1; ++i) {
             routeRaw[i].forEach((ele) => {
-            routeTemp.push(ele);
-          });
-          console.log(routeTemp);
+              routeTemp.push(ele);
+            });
+          }
           route.value = routeTemp;
-    }
         }),
       getNext(),
     ]);
-
-    // getNext();
-
-    console.log(center.value);
-    console.log(route.value);
 
     return {
       center,
