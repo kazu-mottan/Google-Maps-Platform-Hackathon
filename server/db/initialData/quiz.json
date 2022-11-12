@@ -17,8 +17,8 @@
                 },
                 "name": "Shinjuku Station",
                 "quiz": "Over three million people a day pass through the train station.",
-                "quizImage": "../assets/spotImage/Tokyo/Shinjuku_Station_Quiz.jpg",
-                "description": "地点の詳細のテキスト"
+                "quizImage": "https://github.com/Mandryl/Google-Maps-Platform-Hackathon/blob/main/artifact/image/tokyo/Shinjuku_Station_Quiz.jpg?raw=true",
+                "description": "Serving as the main connecting hub for rail traffic between Tokyo's special wards and Western Tokyo on inter-city rail, commuter rail, and subway lines, the station was used by an average of 3.59 million people per day in 2018, making it, by far, the world's busiest station (and registered as such with Guinness World Records)."
             },
             {
                 "position": {
@@ -27,8 +27,8 @@
                 },
                 "name": "Tokyo Metropolitan Government Building",
                 "quiz": "Looks somewhat like a pixelated cathedral, or perhaps the lair of an animated villain.",
-                "quizImage": "../assets/spotImage/Tokyo/Tokyo_Metropolitan_Government_Building_Quiz.jpg",
-                "description": "地点の詳細のテキスト"
+                "quizImage": "https://github.com/Mandryl/Google-Maps-Platform-Hackathon/blob/main/artifact/image/tokyo/Tokyo_Metropolitan_Government_Building_Quiz.jpg?raw=true",
+                "description": "The metropolitan government administers the special wards, cities, towns and villages that constitute part of the Tokyo Metropolis. With a population closing in on 14 million living within its boundaries, and many more commuting from neighbouring prefectures, the metropolitan government wields significant political power within Japan."
             },
             {
                 "position": {
@@ -37,8 +37,8 @@
                 },
                 "name": "Shinjuku Gyoen National Garden",
                 "quiz": "It was originally a residence of the Naitō family in the Edo period",
-                "quizImage": "../assets/spotImage/Tokyo/Shinjuku_Gyoen_National_Garden_Quiz.jpg",
-                "description": "地点の詳細のテキスト"
+                "quizImage": "https://github.com/Mandryl/Google-Maps-Platform-Hackathon/blob/main/artifact/image/tokyo/Shinjuku_Gyoen_National_Garden_Quiz.jpg?raw=true",
+                "description": "Shinjuku-gyoen was designed as an imperial retreat (completed 1906); since opening to the public in 1951, it has become a favourite destination for Tokyoites seeking a quick escape from the hurly-burly of city life. The spacious manicured lawns are perfect for picnicking. Don’t miss the greenhouse; the Taiwanese-style pavilion (Goryō-tei) that overlooks the garden's central pond; and the cherry blossoms in spring."
             },
             {
                 "position": {
@@ -47,8 +47,8 @@
                 },
                 "name": "Godzilla Head",
                 "quiz": "This giant statue of him looking to take a bit out of a skyscraper is a (relatively new) Shinjuku landmark",
-                "quizImage": "../assets/spotImage/Tokyo/Godzilla_Head_Quiz.jpg",
-                "description": "地点の詳細のテキスト"
+                "quizImage": "https://github.com/Mandryl/Google-Maps-Platform-Hackathon/blob/main/artifact/image/tokyo/Godzilla_Head_Quiz.jpg?raw=true",
+                "description": "The sculpture is accessible from Hotel Gracery Shinjuku's Godzilla Terrace, on the Shinjuku Toho Building. It depicts Godzilla, occasionally with \"glowing eyes and smoky breath\". The 80-ton head, based on Godzilla's appearance in Godzilla vs. Mothra (1992), was unveiled in 2015. Its placement on the Hotel Gracery's terrace matches Godzilla's 50 meter height seen during the Showa era films in the franchise."
             },
             {
                 "position": {
@@ -57,8 +57,8 @@
                 },
                 "name": "Meiji Jingu",
                 "quiz": "The Shrine is dedicated to the Emperor Meiji and Empress Shōken",
-                "quizImage": "../assets/spotImage/Tokyo/Meiji_Jingu_Quiz.jpg",
-                "description": "地点の詳細のテキスト"
+                "quizImage": "https://github.com/Mandryl/Google-Maps-Platform-Hackathon/blob/main/artifact/image/tokyo/Meiji_Jingu_Quiz.jpg?raw=true",
+                "description": "Constructed in 1920, the shrine was destroyed in WWII air raids and rebuilt in 1958; however, unlike so many of Japan’s postwar reconstructions, Meiji-jingū has atmosphere in spades. Note that the shrine is currently undergoing renovations bit by bit in preparation for its 100th anniversary, but will remain open."
             }
         ]
     }
