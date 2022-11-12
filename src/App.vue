@@ -3,7 +3,9 @@
     <template #default>
       <router-view />
     </template>
-    <template #fallback> loading... </template>
+    <template #fallback>
+      <img src="./assets/loading.svg" style="width:60vw"/>
+    </template>
     <template #error> Error </template>
   </Suspense>
 </template>

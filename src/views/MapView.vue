@@ -331,8 +331,7 @@ export default {
         };
       }
       const distance = getDistance(user, target);
-      // return distance <= 150 + this.gpsAccuracy;
-      return true;
+      return distance <= 150 + this.gpsAccuracy;
     },
     arrivedMsg(arrived) {
       if (arrived) {
