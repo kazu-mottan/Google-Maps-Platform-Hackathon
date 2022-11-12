@@ -1,223 +1,238 @@
 <template>
-  <el-page-header @back="onback()" class="quiz-header">
-    <template #content>
-      <span class="quiz-title">Where is this place?</span>
-    </template>
-  </el-page-header>
-  <el-card class="quiz-card">
-    <el-container v-if="nowQuiz >= 1 && nowQuiz <= quizTotal">
-      <el-aside width="100px">
-        <el-image
-          v-if="next.quizImage"
-          class="quiz-image"
-          style="width: 100%; height: 100%"
-          :src="next.quizImage"
-          :preview-src-list="[next.quizImage]"
-          fit="cover"
-        />
-        <div v-else>
-          <el-icon :size="30"><Picture /></el-icon>
-          <div>No Image</div>
-        </div>
-      </el-aside>
-      <el-main>
-        <el-progress
-          :percentage="100 * (nowQuiz / quizTotal)"
-          :format="(p) => `${nowQuiz} of ${quizTotal}`"
-        />
-        <span v-if="next.quiz">{{ next.quiz }}</span>
-        <span v-else>Please find the location from the image.</span>
-      </el-main>
-    </el-container>
-    <el-container v-else>
-      <el-aside width="100px">
-        <div >
-          <el-icon :size="30"><Picture /></el-icon>
-          <div>No Image</div>
-        </div>
-      </el-aside>
-      <el-main>
-        <span v-if="nowQuiz < 1">First, please go to the start.</span>
-        <span v-else>It' s almost there! Please go to the goal.</span>
-      </el-main>
-    </el-container>
-  </el-card>
-  <GoogleMap
-    class="map-area"
-    :api-key="apiKey"
-    language="en"
-    mapTypeId="roadmap"
-    :center="center"
-    :zoom="15"
-    :clickableIcons="false"
-    :fullscreenControl="false"
-    :keyboardShortcuts="false"
-    :mapTypeControl="false"
-    :streetViewControl="false"
-  >
-    <CustomControl position="TOP_CENTER">
-      <el-card class="icon-desc">
-        <span
-          ><img
-            src="../assets/start-flag.svg"
-            width="20"
-            height="20"
-            style="vertical-align: middle"
+  <Suspense>
+    <el-page-header @back="onback()" class="quiz-header">
+      <template #content>
+        <span class="quiz-title">Where is this place?</span>
+      </template>
+    </el-page-header>
+    <el-card class="quiz-card">
+      <el-container v-if="nowQuiz >= 1 && nowQuiz <= quizTotal">
+        <el-aside width="100px">
+          <el-image
+            v-if="next.quizImage"
+            class="quiz-image"
+            style="width: 100%; height: 100%"
+            :src="next.quizImage"
+            :preview-src-list="[next.quizImage]"
+            fit="cover"
           />
-          : Start</span
-        >
-        <span
-          ><img
-            src="../assets/goal-flag.svg"
-            width="20"
-            height="20"
-            style="vertical-align: middle"
+          <div v-else>
+            <el-icon :size="30"><Picture /></el-icon>
+            <div>No Image</div>
+          </div>
+        </el-aside>
+        <el-main>
+          <el-progress
+            :percentage="100 * (nowQuiz / quizTotal)"
+            :format="(p) => `${nowQuiz} of ${quizTotal}`"
           />
-          : Goal</span
-        >
-      </el-card>
-    </CustomControl>
-    <CustomControl position="TOP_LEFT">
-      <button @click="aim()" class="custom-ctrl">
-        <el-icon class="aim-btn"><Aim /></el-icon>
-      </button>
-    </CustomControl>
-    <CustomControl position="BOTTOM_CENTER">
-      <el-button
-        type="primary"
-        class="hand-btn"
-        @click="showConfirm = true"
-        style="width: calc(100vw - 200px)"
-      >
-        Submit Your Place
-      </el-button>
-    </CustomControl>
-    <CustomControl position="TOP_RIGHT">
-      <el-button
-        circle
-        color="#FFDE03"
-        class="hand-btn"
-        style="width: 50px"
-        @click="showHint = true"
-      >
-        <el-icon :size="20" color="#4c4c4c"><Opportunity /></el-icon>
-      </el-button>
-    </CustomControl>
-    <div v-for="(spot, index) in spots" :key="index">
-      <Marker
-        v-if="spot.type === 'midpoint'"
-        :options="spotOption(spot)"
-        @click="spotInfo(spot)"
-      />
-      <CustomMarker v-else :options="spotOption(spot)">
-        <img
-          v-if="spot.type === 'start'"
-          src="../assets/start-flag.svg"
-          width="40"
-          height="40"
-        />
-        <img v-else src="../assets/goal-flag.svg" width="40" height="40" />
-      </CustomMarker>
-    </div>
-    <Circle
-      :options="{
-        center: userPos,
-        clickable: false,
-        radius: gpsAccuracy,
-        fillColor: '#78a9ff',
-        fillOpacity: 0.3,
-        strokeOpacity: 0,
-      }"
-    />
-    <CustomMarker :options="{ position: userPos }">
-      <img src="../assets/marker.svg" width="20" height="20" />
-    </CustomMarker>
-    <span v-if="wrongCount >= 3">
-      <CustomMarker v-for="(ns, index) in next.hints.nearSpot" :key="index" :options="{position:ns}">
-        <img src="../assets/hint-flag.svg" width="40" height="40" />
-      </CustomMarker>
-    </span>
-    <Polyline :options="walkingPath" />
-  </GoogleMap>
-  <v-overlay v-model="showHint" class="hint-overlay">
-    <h3 class="hint-title hint-font">1: Photos Uploaded by Google Map User</h3>
-    <p class="hint-font hint-info">
-      <el-icon><Warning /></el-icon> This hint will appear after one submition
-      of the wrong place.
-    </p>
-    <el-carousel
-      v-if="wrongCount >= 1"
-      class="hint-image"
-      arrow="always"
-      :autoplay="false"
-      height="20vh"
-      style="width: 90vw"
+          <span v-if="next.quiz">{{ next.quiz }}</span>
+          <span v-else>Please find the location from the image.</span>
+        </el-main>
+      </el-container>
+      <el-container v-else>
+        <el-aside width="100px">
+          <div>
+            <el-icon :size="30"><Picture /></el-icon>
+            <div>No Image</div>
+          </div>
+        </el-aside>
+        <el-main>
+          <span v-if="nowQuiz < 1">First, please go to the start.</span>
+          <span v-else>It' s almost there! Please go to the goal.</span>
+        </el-main>
+      </el-container>
+    </el-card>
+    <GoogleMap
+      class="map-area"
+      :api-key="apiKey"
+      language="en"
+      mapTypeId="roadmap"
+      :center="center"
+      :zoom="15"
+      :clickableIcons="false"
+      :fullscreenControl="false"
+      :keyboardShortcuts="false"
+      :mapTypeControl="false"
+      :streetViewControl="false"
     >
-      <el-carousel-item
-        v-for="(image, index) in next.hints.images"
-        :key="index"
-      >
-        <el-image
-          :src="`data:image/jpeg;charset=utf-8;base64,${image}`"
-          fit="contain"
-          style="width: 100%; height: 100%"
+      <CustomControl position="TOP_CENTER">
+        <el-card class="icon-desc">
+          <span
+            ><img
+              src="../assets/start-flag.svg"
+              width="20"
+              height="20"
+              style="vertical-align: middle"
+            />
+            : Start</span
+          >
+          <span
+            ><img
+              src="../assets/goal-flag.svg"
+              width="20"
+              height="20"
+              style="vertical-align: middle"
+            />
+            : Goal</span
+          >
+        </el-card>
+      </CustomControl>
+      <CustomControl position="TOP_LEFT">
+        <button @click="aim()" class="custom-ctrl">
+          <el-icon class="aim-btn"><Aim /></el-icon>
+        </button>
+      </CustomControl>
+      <CustomControl position="BOTTOM_CENTER">
+        <el-button
+          type="primary"
+          class="hand-btn"
+          @click="showConfirm = true"
+          style="width: calc(100vw - 200px)"
+        >
+          Submit Your Place
+        </el-button>
+      </CustomControl>
+      <CustomControl position="TOP_RIGHT">
+        <el-button
+          circle
+          color="#FFDE03"
+          class="hand-btn"
+          style="width: 50px"
+          @click="showHint = true"
+        >
+          <el-icon :size="20" color="#4c4c4c"><Opportunity /></el-icon>
+        </el-button>
+      </CustomControl>
+      <div v-for="(spot, index) in spots" :key="index">
+        <Marker
+          v-if="spot.type === 'midpoint'"
+          :options="spotOption(spot)"
+          @click="spotInfo(spot)"
         />
-      </el-carousel-item>
-    </el-carousel>
-    <h3 class="hint-title hint-font">2:Google Map User Review</h3>
-    <p class="hint-font hint-info">
-      <el-icon><Warning /></el-icon> This hint will appear after two submition
-      of the wrong place.
-    </p>
-    <span v-if="wrongCount >= 2">
-      <div
-        v-for="(review, index) in next.hints.reviews"
-        :key="index"
-        style="width: 95%"
-      >
-        <el-divider v-if="index !== 0" />
-        <p class="hint-font">{{ review }}</p>
+        <CustomMarker v-else :options="spotOption(spot)">
+          <img
+            v-if="spot.type === 'start'"
+            src="../assets/start-flag.svg"
+            width="40"
+            height="40"
+          />
+          <img v-else src="../assets/goal-flag.svg" width="40" height="40" />
+        </CustomMarker>
       </div>
-    </span>
-    <h3 class="hint-title hint-font">3:Near Spot on Google Map</h3>
-    <p class="hint-font hint-info">
-      <el-icon><Warning /></el-icon> This hint will appear after three submition
-      of the wrong place.
-    </p>
-    <p class="hint-font" v-if="wrongCount >= 3">
-      Near spot is displayed as: 
-      <img
-        src="../assets/hint-flag.svg"
-        width="20"
-        height="20"
-        style="vertical-align: middle"
-        />
-    </p>
-    <el-button size="large" class="hint-close" @click="showHint = false">
-      <el-icon style="margin-right: 5px"><Close /></el-icon> Close Hints
-    </el-button>
-  </v-overlay>
-  <v-overlay v-model="showSpotInfo" @click="showSpotInfo = false">
-    <p style="height: 30vh">
-      <el-image :src="showedSpot.image" fit="contain" class="spot-image" />
-    </p>
-    <h1 class="spot-desc">{{ showedSpot.name }}</h1>
-    <p class="spot-desc">{{ showedSpot.description }}</p>
-  </v-overlay>
-  <el-dialog v-model="showConfirm" title="Submit Your Place" width="80vw">
-    Have you arrived at the destination?
-    <template #footer>
-      <span class="dialog-footer">
-        <el-button @click="showConfirm = false">Cancel</el-button>
-        <el-button type="primary" @click="checkArrived()"> Arrived </el-button>
+      <Circle
+        :options="{
+          center: userPos,
+          clickable: false,
+          radius: gpsAccuracy,
+          fillColor: '#78a9ff',
+          fillOpacity: 0.3,
+          strokeOpacity: 0,
+        }"
+      />
+      <CustomMarker :options="{ position: userPos }">
+        <img src="../assets/marker.svg" width="20" height="20" />
+      </CustomMarker>
+      <span v-if="wrongCount >= 3">
+        <CustomMarker
+          v-for="(ns, index) in next.hints.nearSpot"
+          :key="index"
+          :options="{ position: ns }"
+        >
+          <img src="../assets/hint-flag.svg" width="40" height="40" />
+        </CustomMarker>
       </span>
-    </template>
-  </el-dialog>
-  <el-dialog class="congrat" v-model="showCongrat" title="Congratulations!" width="80vw">
-    This is proof that you reached the goal. <br/>
-    It can be used as a coupon for local area.
-    <vue-qrcode :value="qrBase64" :options="{ width: 200 }"></vue-qrcode>
-  </el-dialog>
+      <Polyline :options="walkingPath" />
+    </GoogleMap>
+    <v-overlay v-model="showHint" class="hint-overlay">
+      <h3 class="hint-title hint-font">
+        1: Photos Uploaded by Google Map User
+      </h3>
+      <p class="hint-font hint-info">
+        <el-icon><Warning /></el-icon> This hint will appear after one submition
+        of the wrong place.
+      </p>
+      <el-carousel
+        v-if="wrongCount >= 1"
+        class="hint-image"
+        arrow="always"
+        :autoplay="false"
+        height="20vh"
+        style="width: 90vw"
+      >
+        <el-carousel-item
+          v-for="(image, index) in next.hints.images"
+          :key="index"
+        >
+          <el-image
+            :src="`data:image/jpeg;charset=utf-8;base64,${image}`"
+            fit="contain"
+            style="width: 100%; height: 100%"
+          />
+        </el-carousel-item>
+      </el-carousel>
+      <h3 class="hint-title hint-font">2:Google Map User Review</h3>
+      <p class="hint-font hint-info">
+        <el-icon><Warning /></el-icon> This hint will appear after two submition
+        of the wrong place.
+      </p>
+      <span v-if="wrongCount >= 2">
+        <div
+          v-for="(review, index) in next.hints.reviews"
+          :key="index"
+          style="width: 95%"
+        >
+          <el-divider v-if="index !== 0" />
+          <p class="hint-font">{{ review }}</p>
+        </div>
+      </span>
+      <h3 class="hint-title hint-font">3:Near Spot on Google Map</h3>
+      <p class="hint-font hint-info">
+        <el-icon><Warning /></el-icon> This hint will appear after three
+        submition of the wrong place.
+      </p>
+      <p class="hint-font" v-if="wrongCount >= 3">
+        Near spot is displayed as:
+        <img
+          src="../assets/hint-flag.svg"
+          width="20"
+          height="20"
+          style="vertical-align: middle"
+        />
+      </p>
+      <el-button size="large" class="hint-close" @click="showHint = false">
+        <el-icon style="margin-right: 5px"><Close /></el-icon> Close Hints
+      </el-button>
+    </v-overlay>
+    <v-overlay v-model="showSpotInfo" @click="showSpotInfo = false">
+      <p style="height: 30vh">
+        <el-image :src="showedSpot.image" fit="contain" class="spot-image" />
+      </p>
+      <h1 class="spot-desc">{{ showedSpot.name }}</h1>
+      <p class="spot-desc">{{ showedSpot.description }}</p>
+    </v-overlay>
+    <el-dialog v-model="showConfirm" title="Submit Your Place" width="80vw">
+      Have you arrived at the destination?
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="showConfirm = false">Cancel</el-button>
+          <el-button type="primary" @click="checkArrived()">
+            Arrived
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
+    <el-dialog
+      class="congrat"
+      v-model="showCongrat"
+      title="Congratulations!"
+      width="80vw"
+    >
+      This is proof that you reached the goal. <br />
+      It can be used as a coupon for local area.
+      <vue-qrcode :value="qrBase64" :options="{ width: 200 }"></vue-qrcode>
+    </el-dialog>
+  </Suspense>
 </template>
 
 <script>
@@ -227,7 +242,7 @@ import {
   Aim,
   Picture,
   Close,
-  Warning
+  Warning,
 } from "@element-plus/icons-vue";
 import {
   GoogleMap,
@@ -238,11 +253,11 @@ import {
   Polyline,
 } from "vue3-google-map";
 import { VOverlay } from "vuetify/components";
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { getDistance } from "geolib";
 import { useCookies, globalCookiesConfig } from "vue3-cookies";
-import { useRoute } from 'vue-router';
-import { ElLoading } from 'element-plus'
+import { useRoute } from "vue-router";
+import { ElLoading } from "element-plus";
 
 export default {
   name: "HomeView",
@@ -299,17 +314,17 @@ export default {
         latitude: this.next.position.lat,
         longitude: this.next.position.lng,
       };
-      if(this.nowQuiz === 0){
-        const start = this.spots.find((ele)=>ele.type === "start");
+      if (this.nowQuiz === 0) {
+        const start = this.spots.find((ele) => ele.type === "start");
         target = {
           latitude: start.position.lat,
-          longitude: start.position.lng
+          longitude: start.position.lng,
         };
-      }else if(this.nowQuiz > this.quizTotal){
-        const goal = this.spots.find((ele)=>ele.type === "goal");
+      } else if (this.nowQuiz > this.quizTotal) {
+        const goal = this.spots.find((ele) => ele.type === "goal");
         target = {
           latitude: goal.position.lat,
-          longitude: goal.position.lng
+          longitude: goal.position.lng,
         };
       }
       const distance = getDistance(user, target);
@@ -333,23 +348,23 @@ export default {
           setTimeout(() => {
             const loading = ElLoading.service({
               lock: true,
-              text: 'Loading',
-              background: 'rgba(0, 0, 0, 0.7)',
+              text: "Loading",
+              background: "rgba(0, 0, 0, 0.7)",
             });
             this.spots.push({
-              type:"midpoint",
+              type: "midpoint",
               position: this.next.position,
               name: this.next.name,
               image: this.next.images,
-              description: this.next.description
+              description: this.next.description,
             });
-            if(this.nowQuiz >= 2){
+            if (this.nowQuiz >= 2) {
               const that = this;
-              this.routeRaw[nowQuiz - 2].forEach(
-                (ele) => that.route.push(ele)
-              );
+              this.routeRaw[nowQuiz - 2].forEach((ele) => that.route.push(ele));
             }
-            this.getNext().then(()=>{loading.close()});
+            this.getNext().then(() => {
+              loading.close();
+            });
           }, 1000);
         }
         if (this.nowQuiz > this.quizTotal) {
@@ -361,22 +376,24 @@ export default {
         this.cookieSync();
       }
     },
-    cookieSync(){
-      const mapID =  this.$route.query.id;
-      this.cookies.set(`${mapID}_now`,this.nowQuiz);
-      this.cookies.set(`${mapID}_wrong`,this.wrongCount);
+    cookieSync() {
+      const mapID = this.$route.query.id;
+      this.cookies.set(`${mapID}_now`, this.nowQuiz);
+      this.cookies.set(`${mapID}_wrong`, this.wrongCount);
     },
-    loading(time){
+    loading(time) {
       const loading = ElLoading.service({
         lock: true,
-        text: 'Loading',
-        background: 'rgba(0, 0, 0, 0.7)',
+        text: "Loading",
+        background: "rgba(0, 0, 0, 0.7)",
       });
-      setTimeout(() => {loading.close()}, time);
+      setTimeout(() => {
+        loading.close();
+      }, time);
     },
-    onback(){
+    onback() {
       this.$router.push("/");
-    }
+    },
   },
   computed: {
     walkingPath() {
@@ -388,12 +405,13 @@ export default {
         strokeOpacity: 1.0,
       };
     },
-    qrBase64(){
-      const mapID =  this.$route.query.id;
-      return window.btoa(JSON.stringify({mapID:mapID,status:'goal'}));
-    }
+    qrBase64() {
+      const mapID = this.$route.query.id;
+      return window.btoa(JSON.stringify({ mapID: mapID, status: "goal" }));
+    },
   },
-  setup() {
+  async setup() {
+    const center = ref({ lat: 35.684129649804404, lng: 139.75510159163784 });
     const userPos = ref({ lat: 35.684129649804404, lng: 139.75510159163784 });
     const gpsAccuracy = ref(0.0);
     const setGPSValue = (pos) => {
@@ -413,7 +431,7 @@ export default {
     );
     const apiKey = process.env.VUE_APP_GOOGLE_MAP_KEY;
 
-    globalCookiesConfig({expireTimes: "7d",});
+    globalCookiesConfig({ expireTimes: "7d" });
     const { cookies } = useCookies();
 
     const router = useRoute();
@@ -421,61 +439,69 @@ export default {
 
     const nowQuiz = ref(0);
     const wrongCount = ref(0);
-    nowQuiz.value = cookies.isKey(`${mapID}_now`) ? cookies.get(`${mapID}_now`) : 0;
-    wrongCount.value = cookies.isKey(`${mapID}_wrong`) ? cookies.get(`${mapID}_wrong`) : 0;
+    nowQuiz.value = cookies.isKey(`${mapID}_now`)
+      ? cookies.get(`${mapID}_now`)
+      : 0;
+    wrongCount.value = cookies.isKey(`${mapID}_wrong`)
+      ? cookies.get(`${mapID}_wrong`)
+      : 0;
 
     const spots = ref([]);
     const next = ref({});
     const quizTotal = ref(0);
     const route = ref([]);
-    const center = ref({ lat: 35.684129649804404, lng: 139.75510159163784 });
 
-    fetch(`/api/init/${mapID}`, {
+    let routeRaw = [];
+    let routeTemp = [];
+
+    const getNext = async () => {
+      const data = await fetch(`/api/next/${mapID}`, {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({now:nowQuiz.value}),
-      }).then((response) => response.json())
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ now: nowQuiz.value }),
+      }).then((response) => response.json());
+      console.log(data);
+      next.value = data.next;
+    };
+
+    await Promise.all([
+      fetch(`/api/init/${mapID}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ now: nowQuiz.value }),
+      })
+        .then((response) => response.json())
         .then((data) => {
           console.log(data);
           spots.value = data.spots;
           quizTotal.value = data.total;
-          const start = data.spots.find(ele => ele.type === "start");
-          center.value = start.position;
-      });
-    let routeRaw = [];
-    fetch(`/api/route/${mapID}`)
-      .then(response=>response.json())
-      .then(data => {console.log(data); routeRaw = data.route;})
-      .catch((error)=>{console.log(error)});
-    let routeTemp = [];
-    for(let i = 0; i < nowQuiz - 1 && i < quizTotal - 1; ++i){
-      routeRaw[i].forEach(ele => {routeTemp.push(ele)});
+          // const start = data.spots.find((ele) => ele.type === "start");
+          // center.value = start.position;
+        }),
+      fetch(`/api/route/${mapID}`)
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data);
+          routeRaw = data.route;
+        }).then(()=>{
+          for (let i = 0; i < nowQuiz - 1 && i < quizTotal - 1; ++i) {
+            routeRaw[i].forEach((ele) => {
+            routeTemp.push(ele);
+          });
+          console.log(routeTemp);
+          route.value = routeTemp;
     }
-    route.value = routeTemp;
+        }),
+      getNext(),
+    ]);
 
-    const getNext = async () =>{
-      const data = await fetch(`/api/next/${mapID}`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({now:nowQuiz.value}),
-      }).then((response) => response.json());
-      console.log(data);
-      next.value = data.next;
-    }
+    // getNext();
 
-    getNext();
-
-    console.log(userPos.value);
-    console.log(gpsAccuracy.value);
-    console.log(apiKey);
-    console.log(spots.value);
-    console.log(next.value);
-    console.log(quizTotal.value);
-    console.log(route.value);
-    console.log(nowQuiz.value);
+    console.log(center.value);
     console.log(route.value);
 
     return {
+      center,
       userPos,
       gpsAccuracy,
       apiKey,
@@ -487,7 +513,7 @@ export default {
       nowQuiz,
       wrongCount,
       getNext,
-      routeRaw
+      routeRaw,
     };
   },
 };
@@ -616,7 +642,7 @@ export default {
   width: 95%;
   font-weight: lighter;
 }
-.congrat .el-dialog__title{
+.congrat .el-dialog__title {
   font-size: 1.3rem;
   font-weight: bold;
   color: #4285f4;
