@@ -39,7 +39,6 @@ place.getImgAndReview = async (name) => {
     }));
     const results = await Promise.all(promises).catch(error => console.log(error));
     const images = results.map(r => encoder(r.data));
-
     const review = reviews?.map((r)=>r.text?.replace(/(\r\n|\n|\r)/gm,""));
 
     return {

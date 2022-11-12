@@ -37,7 +37,7 @@
         </div>
       </el-aside>
       <el-main>
-        <span v-if="nowQuiz < 1">First, please go to the start.</span>
+        <span v-if="nowQuiz === 0">First, please go to the start.</span>
         <span v-else>It' s almost there! Please go to the goal.</span>
       </el-main>
     </el-container>
@@ -88,6 +88,7 @@
         class="hand-btn"
         @click="showConfirm = true"
         style="width: calc(100vw - 200px)"
+        :disabled="nowQuiz > quizTotal+1"
       >
         Submit Your Place
       </el-button>
@@ -141,7 +142,8 @@
         <img src="../assets/hint-flag.svg" width="40" height="40" />
       </CustomMarker>
     </span>
-    <Polyline v-if="route.length > 0" :options="walkingPath" />
+   <Polyline v-for="(r, index) in route" :key="`route-${index}`"
+      :options="{ path: r, geodesic: true, clickable: false, strokeColor: '#4285F4', strokeOpacity: 1.0,}" />
   </GoogleMap>
   <v-overlay v-model="showHint" class="hint-overlay">
     <h3 class="hint-title hint-font">1: Photos Uploaded by Google Map User</h3>
@@ -247,7 +249,7 @@ import {
   Polyline,
 } from "vue3-google-map";
 import { VOverlay } from "vuetify/components";
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { getDistance } from "geolib";
 import { useCookies, globalCookiesConfig } from "vue3-cookies";
 import { useRoute } from "vue-router";
@@ -274,7 +276,6 @@ export default {
     showSpotInfo: false,
     showedSpot: null,
     showConfirm: false,
-    showCongrat: false,
   }),
   methods: {
     aim() {
@@ -297,7 +298,15 @@ export default {
       this.showConfirm = false;
       const arrived = this.checkPlace();
       this.arrivedMsg(arrived);
-      this.arrivedProcess(arrived);
+      setTimeout(async () => {
+        const loading = ElLoading.service({
+              lock: true,
+              text: "Loading",
+              background: "rgba(0, 0, 0, 0.7)",
+        });
+        await this.arrivedProcess(arrived);
+        loading.close();
+      }, 1000);
     },
     checkPlace() {
       const user = {
@@ -322,7 +331,8 @@ export default {
         };
       }
       const distance = getDistance(user, target);
-      return distance <= 150 + this.gpsAccuracy;
+      // return distance <= 150 + this.gpsAccuracy;
+      return true;
     },
     arrivedMsg(arrived) {
       if (arrived) {
@@ -334,36 +344,33 @@ export default {
         ElMessage.error("Not Arrived");
       }
     },
-    arrivedProcess(arrived) {
+    async arrivedProcess(arrived) {
       if (arrived) {
         this.wrongCount = 0;
-        this.nowQuiz++;
+        // register next as spot
         if (this.nowQuiz >= 1 && this.nowQuiz <= this.quizTotal) {
-          setTimeout(() => {
-            const loading = ElLoading.service({
-              lock: true,
-              text: "Loading",
-              background: "rgba(0, 0, 0, 0.7)",
-            });
-            this.spots.push({
-              type: "midpoint",
-              position: this.next.position,
-              name: this.next.name,
-              image: this.next.images,
-              description: this.next.description,
-            });
-            if (this.nowQuiz >= 2) {
-              const that = this;
-              this.routeRaw[nowQuiz - 2].forEach((ele) => that.route.push(ele));
-            }
-            this.getNext().then(() => {
-              loading.close();
-            });
-          }, 1000);
+          this.spots.push({
+            type: "midpoint",
+            position: this.next.position,
+            name: this.next.name,
+            image: this.next.image,
+            description: this.next.description,
+          });
         }
-        if (this.nowQuiz > this.quizTotal) {
+        // get next
+        if(this.nowQuiz >= 1 && this.nowQuiz < this.quizTotal){
+          await this.getNext(false);
+        }
+        // show congraturation window
+        if(this.nowQuiz >= this.quizTotal + 1){
           this.showCongrat = true;
         }
+        // add route
+        if(this.nowQuiz >= 1 && this.nowQuiz <= this.quizTotal+1){
+          const addRoute = this.routeRaw[this.nowQuiz - 1];
+          this.route.push(addRoute);
+        }
+        this.nowQuiz++;
         this.cookieSync();
       } else if (this.nowQuiz >= 1 && this.nowQuiz <= this.quizTotal) {
         this.wrongCount++;
@@ -375,30 +382,11 @@ export default {
       this.cookies.set(`${mapID}_now`, this.nowQuiz);
       this.cookies.set(`${mapID}_wrong`, this.wrongCount);
     },
-    loading(time) {
-      const loading = ElLoading.service({
-        lock: true,
-        text: "Loading",
-        background: "rgba(0, 0, 0, 0.7)",
-      });
-      setTimeout(() => {
-        loading.close();
-      }, time);
-    },
     onback() {
       this.$router.push("/");
     },
   },
   computed: {
-    walkingPath() {
-      return {
-        path: this.route,
-        geodesic: true,
-        clickable: false,
-        strokeColor: "#4285F4",
-        strokeOpacity: 1.0,
-      };
-    },
     qrBase64() {
       const mapID = this.$route.query.id;
       return window.btoa(JSON.stringify({ mapID: mapID, status: "goal" }));
@@ -446,13 +434,13 @@ export default {
     const route = ref([]);
 
     let routeRaw = [];
-    let routeTemp = [];
 
-    const getNext = async () => {
+    const getNext = async (fix) => {
+      const index = (fix) ? nowQuiz.value - 1: nowQuiz.value;
       const data = await fetch(`/api/next/${mapID}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ now: nowQuiz.value }),
+        body: JSON.stringify({ now: index }),
       }).then((response) => response.json());
       next.value = data.next;
     };
@@ -474,17 +462,20 @@ export default {
         .then((response) => response.json())
         .then((data) => {
           routeRaw = data.route;
-        })
-        .then(() => {
-          for (let i = 0; i < nowQuiz - 1 && i < quizTotal - 1; ++i) {
-            routeRaw[i].forEach((ele) => {
-              routeTemp.push(ele);
-            });
+          let end = nowQuiz.value - 1;
+          if(end < 0){
+            end = 0;
           }
-          route.value = routeTemp;
+          if(nowQuiz.value > routeRaw.length ){
+            end = routeRaw.length;
+          }
+          route.value = routeRaw.slice(0,end);
         }),
-      getNext(),
+      getNext(true),
     ]);
+
+    const showCongrat = ref(false);
+    showCongrat.value = nowQuiz.value > quizTotal.value+1;
 
     return {
       center,
@@ -500,6 +491,7 @@ export default {
       wrongCount,
       getNext,
       routeRaw,
+      showCongrat
     };
   },
 };

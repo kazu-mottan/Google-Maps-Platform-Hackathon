@@ -27,12 +27,14 @@ router.post('/init/:mapID', async (req, res) => {
     }
 
     const {start, goal, midpoint} = quiz;
-    if(midpoint.length < nowQuizCount) nowQuizCount = midpoint.length;
+    let end = nowQuizCount - 1;
+    if(end < 0) end = 0;
+    if(midpoint.length < nowQuizCount) end = midpoint.length;
 
     const startPoint = {type:"start", position: start};
     const goalPoint = {type:"goal", position: goal};
 
-    const passedMidpoint = midpoint.slice(0,nowQuizCount);
+    const passedMidpoint = midpoint.slice(0,end);
     const results = await Promise.all(
         passedMidpoint.map(ele => place.getRefImg(ele.name))
     );
@@ -55,17 +57,19 @@ router.post('/next/:mapID', async (req, res) => {
         res.status(400).json({msg: "Quiz Not Found"});
     }
     const length = quiz.midpoint.length;
-    if(length <= nowQuizCount){
+    if(length < nowQuizCount){
         logger.error("No Next Exists");
         res.status(400).json({msg: "No Next Exists"});
     }else{
-        const next = quiz.midpoint[nowQuizCount];
+        let index = nowQuizCount;
+        if(index < 0) index = 0;
+        if(index >= quiz.midpoint.length ) index = quiz.midpoint.length - 1;
+        const next = quiz.midpoint[index];
         const imageReview = await place.getImgAndReview(next.name);
         const near = await place.getNear(next.position);
         next.image = imageReview.refImage;
         next.hints = imageReview.hints;
         next.hints.nearSpot = near.nearSpot;
-        console.log(next);
 
         res.status(200).json({next:next});
     }
