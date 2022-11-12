@@ -1,0 +1,65 @@
+[
+    {
+        "id": "tokyo-001",
+        "start": {
+            "lat": 35.6944116334847,
+            "lng": 139.692833053812
+        },
+        "goal": {
+            "lat": 35.67013546423989,
+            "lng": 139.7025396248699
+        },
+        "midpoint": [
+            {
+                "position": {
+                    "lat": 35.689780949322156,
+                    "lng": 139.70058202560097
+                },
+                "name": "Shinjuku Station",
+                "quiz": "Over three million people a day pass through the train station.",
+                "quizImage": "../assets/spotImage/Tokyo/Shinjuku_Station_Quiz.jpg",
+                "description": "地点の詳細のテキスト"
+            },
+            {
+                "position": {
+                    "lat": 35.68982587690886,
+                    "lng": 139.69216506977926
+                },
+                "name": "Tokyo Metropolitan Government Building",
+                "quiz": "Looks somewhat like a pixelated cathedral, or perhaps the lair of an animated villain.",
+                "quizImage": "../assets/spotImage/Tokyo/Tokyo_Metropolitan_Government_Building_Quiz.jpg",
+                "description": "地点の詳細のテキスト"
+            },
+            {
+                "position": {
+                    "lat": 35.685367987623444,
+                    "lng": 139.7100087814228
+                },
+                "name": "Shinjuku Gyoen National Garden",
+                "quiz": "It was originally a residence of the Naitō family in the Edo period",
+                "quizImage": "../assets/spotImage/Tokyo/Shinjuku_Gyoen_National_Garden_Quiz.jpg",
+                "description": "地点の詳細のテキスト"
+            },
+            {
+                "position": {
+                    "lat": 35.69528735744306,
+                    "lng": 139.70191169981663
+                },
+                "name": "Godzilla Head",
+                "quiz": "This giant statue of him looking to take a bit out of a skyscraper is a (relatively new) Shinjuku landmark",
+                "quizImage": "../assets/spotImage/Tokyo/Godzilla_Head_Quiz.jpg",
+                "description": "地点の詳細のテキスト"
+            },
+            {
+                "position": {
+                    "lat": 35.67804023702522,
+                    "lng": 139.69955115769255
+                },
+                "name": "Meiji Jingu",
+                "quiz": "The Shrine is dedicated to the Emperor Meiji and Empress Shōken",
+                "quizImage": "../assets/spotImage/Tokyo/Meiji_Jingu_Quiz.jpg",
+                "description": "地点の詳細のテキスト"
+            }
+        ]
+    }
+]
