@@ -1,11 +1,11 @@
-FROM amd64/node:16.15.0 as builder
+FROM node:16.15.0 as builder
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install
 COPY . .
 RUN npm run build
 
-FROM amd64/node:16.15.0 as runner
+FROM node:16.15.0 as runner
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install --production
